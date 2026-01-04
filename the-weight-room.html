@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Weight Room - Confront Your Resistance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #eee;
+        }
+
+        .container {
+            text-align: center;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .phase {
+            display: none;
+            animation: fadeIn 0.8s ease;
+            max-width: 800px;
+            padding: 40px;
+        }
+
+        .phase.active {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 15px;
+            color: #64b5f6;
+        }
+
+        p {
+            font-size: 1.2em;
+            line-height: 1.6;
+            opacity: 0.9;
+            max-width: 600px;
+        }
+
+        .weight {
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle at 30% 30%, #424242, #1a1a1a);
+            border-radius: 20px;
+            box-shadow:
+                0 20px 60px rgba(0,0,0,0.8),
+                inset -5px -5px 10px rgba(0,0,0,0.5),
+                inset 5px 5px 10px rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            animation: weightPulse 3s ease-in-out infinite;
+        }
+
+        @keyframes weightPulse {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-10px) scale(1.02); }
+        }
+
+        .weight:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 25px 70px rgba(0,0,0,0.9);
+        }
+
+        .weight-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ff6b6b;
+            text-align: center;
+            padding: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            max-width: 500px;
+            padding: 20px;
+            font-size: 1.2em;
+            border: 2px solid #64b5f6;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            background: rgba(255,255,255,0.15);
+            border-color: #42a5f5;
+            box-shadow: 0 0 20px rgba(66,165,245,0.3);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .emotion-buttons {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .emotion-btn {
+            padding: 15px 30px;
+            font-size: 1.1em;
+            border: 2px solid transparent;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255,255,255,0.1);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .emotion-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+        }
+
+        .emotion-btn.selected {
+            border-color: #64b5f6;
+            background: rgba(100,181,246,0.3);
+            box-shadow: 0 0 20px rgba(100,181,246,0.4);
+        }
+
+        .emotion-btn.fear { border-color: #ff6b6b; }
+        .emotion-btn.fear.selected { background: rgba(255,107,107,0.3); }
+
+        .emotion-btn.overwhelm { border-color: #ffd93d; }
+        .emotion-btn.overwhelm.selected { background: rgba(255,217,61,0.3); }
+
+        .emotion-btn.perfectionism { border-color: #a8e6cf; }
+        .emotion-btn.perfectionism.selected { background: rgba(168,230,207,0.3); }
+
+        .emotion-btn.meaning { border-color: #c7a2ff; }
+        .emotion-btn.meaning.selected { background: rgba(199,162,255,0.3); }
+
+        .btn-primary {
+            padding: 18px 40px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102,126,234,0.6);
+        }
+
+        .btn-primary:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .shadow-cost {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle, transparent 30%, rgba(0,0,0,0.8) 100%);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s ease;
+        }
+
+        .shadow-cost.visible {
+            opacity: 1;
+        }
+
+        .woop-container {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+            width: 100%;
+        }
+
+        .woop-section {
+            background: rgba(255,255,255,0.05);
+            padding: 25px;
+            border-radius: 15px;
+            border-left: 4px solid;
+            backdrop-filter: blur(10px);
+        }
+
+        .woop-section.wish { border-left-color: #4caf50; }
+        .woop-section.outcome { border-left-color: #2196f3; }
+        .woop-section.obstacle { border-left-color: #ff9800; }
+        .woop-section.plan { border-left-color: #9c27b0; }
+
+        .woop-section h3 {
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .woop-section .hint {
+            font-size: 0.95em;
+            opacity: 0.7;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .pieces-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px;
+        }
+
+        .piece {
+            background: radial-gradient(circle at 30% 30%, #546e7a, #263238);
+            padding: 20px;
+            border-radius: 12px;
+            cursor: grab;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            user-select: none;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+
+        .piece:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.7);
+        }
+
+        .piece.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+
+        .piece.small {
+            background: radial-gradient(circle at 30% 30%, #81c784, #4caf50);
+            animation: lightPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes lightPulse {
+            0%, 100% { box-shadow: 0 5px 15px rgba(76,175,80,0.4); }
+            50% { box-shadow: 0 5px 25px rgba(76,175,80,0.7); }
+        }
+
+        .break-smaller-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            transition: all 0.2s ease;
+        }
+
+        .break-smaller-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
+        }
+
+        .drop-zone {
+            border: 3px dashed #64b5f6;
+            border-radius: 15px;
+            padding: 40px;
+            min-height: 200px;
+            margin-top: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .drop-zone.drag-over {
+            background: rgba(100,181,246,0.2);
+            border-color: #42a5f5;
+        }
+
+        .drop-zone-label {
+            width: 100%;
+            text-align: center;
+            opacity: 0.6;
+            font-size: 1.1em;
+        }
+
+        .first-step-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 500px;
+        }
+
+        .first-step-option {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .first-step-option:hover {
+            background: rgba(255,255,255,0.15);
+            transform: translateX(10px);
+        }
+
+        .first-step-option.selected {
+            border-color: #4caf50;
+            background: rgba(76,175,80,0.2);
+            box-shadow: 0 0 20px rgba(76,175,80,0.3);
+        }
+
+        .completion-screen {
+            text-align: center;
+            animation: fadeIn 1s ease;
+        }
+
+        .completion-screen h1 {
+            font-size: 3em;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .your-plan {
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            backdrop-filter: blur(10px);
+            border: 2px solid #64b5f6;
+            max-width: 600px;
+        }
+
+        .your-plan h3 {
+            color: #64b5f6;
+            margin-bottom: 15px;
+        }
+
+        .your-plan p {
+            text-align: left;
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+        }
+
+        .restart-btn {
+            margin-top: 30px;
+            padding: 15px 35px;
+            font-size: 1.1em;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid white;
+            border-radius: 25px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.05);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(102,126,234,0.5);
+        }
+
+        .quote {
+            font-style: italic;
+            opacity: 0.8;
+            margin-top: 20px;
+            font-size: 1em;
+            max-width: 500px;
+        }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+    <div class="shadow-cost" id="shadowCost"></div>
+
+    <div class="container">
+        <!-- Phase 1: Name the Resistance -->
+        <div class="phase active" id="phase1">
+            <h1>The Weight Room</h1>
+            <p>That heavy feeling about work? It's real. Let's face it together.</p>
+
+            <div class="weight" onclick="pulseWeight()">
+                <div class="weight-label">Click to begin</div>
+            </div>
+
+            <p class="quote">"What we resist, persists. What we accept, transforms."</p>
+        </div>
+
+        <!-- Phase 2: Name It -->
+        <div class="phase" id="phase2">
+            <h2>Name the Weight</h2>
+            <p>What task or project is weighing on you?</p>
+
+            <input type="text" id="taskInput" placeholder="Be specific: 'Q1 report' not just 'work'">
+
+            <p style="margin-top: 20px;">What emotion is driving the resistance?</p>
+
+            <div class="emotion-buttons">
+                <button class="emotion-btn fear" onclick="selectEmotion('fear', this)">
+                    Fear of Failure
+                </button>
+                <button class="emotion-btn overwhelm" onclick="selectEmotion('overwhelm', this)">
+                    Overwhelmed
+                </button>
+                <button class="emotion-btn perfectionism" onclick="selectEmotion('perfectionism', this)">
+                    Perfectionism
+                </button>
+                <button class="emotion-btn meaning" onclick="selectEmotion('meaning', this)">
+                    Lack of Meaning
+                </button>
+            </div>
+
+            <button class="btn-primary" id="phase2Btn" onclick="nextPhase(3)" disabled>Continue</button>
+        </div>
+
+        <!-- Phase 3: Face the Cost -->
+        <div class="phase" id="phase3">
+            <h2>Face the Cost</h2>
+            <p>Avoiding this task might feel good now, but what's it really costing you?</p>
+
+            <textarea id="costInput" placeholder="Be honest: stress? opportunities lost? self-respect? relationships?"></textarea>
+
+            <button class="btn-primary" onclick="nextPhase(4)">I see the cost</button>
+
+            <p class="quote">"The pain of discipline weighs ounces. The pain of regret weighs tons."</p>
+        </div>
+
+        <!-- Phase 4: WOOP Framework -->
+        <div class="phase" id="phase4">
+            <h2>Transform the Weight</h2>
+            <p>Let's use a proven psychological method (WOOP) to create real change.</p>
+
+            <div class="woop-container">
+                <div class="woop-section wish">
+                    <h3>Wish: What do you truly want?</h3>
+                    <div class="hint">Not "finish the task" - what feeling or outcome do you want?</div>
+                    <input type="text" id="wishInput" placeholder="e.g., 'Feel accomplished and proud'">
+                </div>
+
+                <div class="woop-section outcome">
+                    <h3>Outcome: Imagine the best result</h3>
+                    <div class="hint">How will it feel when you've done this?</div>
+                    <textarea id="outcomeInput" placeholder="Visualize it: relief, pride, freedom..."></textarea>
+                </div>
+
+                <div class="woop-section obstacle">
+                    <h3>Obstacle: What INTERNAL barrier will stop you?</h3>
+                    <div class="hint">Not external - what inside you? (procrastination urge, self-doubt, distraction...)</div>
+                    <input type="text" id="obstacleInput" placeholder="e.g., 'The urge to check my phone when it gets hard'">
+                </div>
+
+                <div class="woop-section plan">
+                    <h3>Plan: If-Then Strategy</h3>
+                    <div class="hint">If [obstacle happens], then I will [specific action]</div>
+                    <textarea id="planInput" placeholder="e.g., 'If I want to check my phone, then I'll take 3 deep breaths and write one sentence'"></textarea>
+                </div>
+            </div>
+
+            <button class="btn-primary" id="phase4Btn" onclick="nextPhase(5)" disabled>Break it down</button>
+        </div>
+
+        <!-- Phase 5: Break It Down -->
+        <div class="phase" id="phase5">
+            <h2>Make It Light</h2>
+            <p>The weight is too heavy as one piece. Break it into smaller, manageable parts.</p>
+            <p style="font-size: 0.9em; opacity: 0.8;">Click "→" to break pieces even smaller. Drag pieces to "Doable" when they feel manageable.</p>
+
+            <div class="pieces-container" id="piecesContainer"></div>
+
+            <div class="drop-zone" id="dropZone">
+                <div class="drop-zone-label">Drag doable pieces here</div>
+            </div>
+
+            <button class="btn-primary" id="phase5Btn" onclick="nextPhase(6)" disabled>Choose first step</button>
+        </div>
+
+        <!-- Phase 6: Choose Your Path -->
+        <div class="phase" id="phase6">
+            <h2>Choose Your First Step</h2>
+            <p>You have the power to choose where to start. Pick what feels right for YOU.</p>
+
+            <div class="first-step-container" id="firstStepContainer"></div>
+
+            <button class="btn-primary" id="phase6Btn" onclick="complete()" disabled>I'm ready</button>
+        </div>
+
+        <!-- Completion -->
+        <div class="phase" id="completion">
+            <div class="completion-screen">
+                <h1>The Weight Has Transformed</h1>
+                <p>You didn't avoid it. You faced it. You named it. You broke it down.</p>
+
+                <div class="your-plan" id="yourPlan"></div>
+
+                <p style="margin-top: 30px; font-size: 1.1em;">The resistance might return. That's normal. Come back and face it again.</p>
+
+                <button class="restart-btn" onclick="restart()">Face Another Weight</button>
+            </div>
+        </div>
+    </div>
+
+    <audio id="lowTone"></audio>
+    <audio id="highTone"></audio>
+
+    <script>
+        // State management
+        const state = {
+            currentPhase: 1,
+            task: '',
+            emotion: '',
+            cost: '',
+            wish: '',
+            outcome: '',
+            obstacle: '',
+            plan: '',
+            pieces: [],
+            doablePieces: [],
+            firstStep: ''
+        };
+
+        // Audio context for sounds
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioContext = new AudioContext();
+
+        function playTone(frequency, duration, type = 'sine', volume = 0.3) {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+
+            gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playDeepTone() {
+            playTone(110, 0.5, 'sawtooth', 0.2);
+        }
+
+        function playLiftingTone() {
+            setTimeout(() => playTone(220, 0.2), 0);
+            setTimeout(() => playTone(330, 0.2), 100);
+            setTimeout(() => playTone(440, 0.3), 200);
+        }
+
+        function playBreakTone() {
+            playTone(660, 0.15, 'triangle', 0.25);
+        }
+
+        function playSuccessTone() {
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((note, index) => {
+                setTimeout(() => playTone(note, 0.2, 'sine', 0.2), index * 100);
+            });
+        }
+
+        // Phase management
+        function nextPhase(phaseNum) {
+            // Save current phase data
+            if (state.currentPhase === 2) {
+                state.task = document.getElementById('taskInput').value;
+            } else if (state.currentPhase === 3) {
+                state.cost = document.getElementById('costInput').value;
+                document.getElementById('shadowCost').classList.add('visible');
+                setTimeout(() => {
+                    document.getElementById('shadowCost').classList.remove('visible');
+                }, 1000);
+            } else if (state.currentPhase === 4) {
+                state.wish = document.getElementById('wishInput').value;
+                state.outcome = document.getElementById('outcomeInput').value;
+                state.obstacle = document.getElementById('obstacleInput').value;
+                state.plan = document.getElementById('planInput').value;
+                generatePieces();
+            }
+
+            // Hide current phase
+            document.getElementById(`phase${state.currentPhase}`).classList.remove('active');
+
+            // Show next phase
+            state.currentPhase = phaseNum;
+            document.getElementById(`phase${phaseNum}`).classList.add('active');
+
+            // Update progress bar
+            const progress = (phaseNum - 1) / 6 * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            // Play sound
+            if (phaseNum === 5) {
+                playBreakTone();
+            } else {
+                playLiftingTone();
+            }
+        }
+
+        function pulseWeight() {
+            playDeepTone();
+            nextPhase(2);
+        }
+
+        function selectEmotion(emotion, button) {
+            state.emotion = emotion;
+
+            // Remove selected class from all buttons
+            document.querySelectorAll('.emotion-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+
+            // Add selected class to clicked button
+            button.classList.add('selected');
+
+            checkPhase2Complete();
+        }
+
+        function checkPhase2Complete() {
+            const taskInput = document.getElementById('taskInput').value;
+            const phase2Btn = document.getElementById('phase2Btn');
+
+            if (taskInput.trim() && state.emotion) {
+                phase2Btn.disabled = false;
+            } else {
+                phase2Btn.disabled = true;
+            }
+        }
+
+        document.getElementById('taskInput')?.addEventListener('input', checkPhase2Complete);
+
+        // WOOP validation
+        function checkWOOPComplete() {
+            const wish = document.getElementById('wishInput').value;
+            const outcome = document.getElementById('outcomeInput').value;
+            const obstacle = document.getElementById('obstacleInput').value;
+            const plan = document.getElementById('planInput').value;
+            const phase4Btn = document.getElementById('phase4Btn');
+
+            if (wish.trim() && outcome.trim() && obstacle.trim() && plan.trim()) {
+                phase4Btn.disabled = false;
+            } else {
+                phase4Btn.disabled = true;
+            }
+        }
+
+        document.getElementById('wishInput')?.addEventListener('input', checkWOOPComplete);
+        document.getElementById('outcomeInput')?.addEventListener('input', checkWOOPComplete);
+        document.getElementById('obstacleInput')?.addEventListener('input', checkWOOPComplete);
+        document.getElementById('planInput')?.addEventListener('input', checkWOOPComplete);
+
+        // Generate pieces from task
+        function generatePieces() {
+            const task = state.task;
+            const pieces = [
+                'Research & gather info',
+                'Create outline/plan',
+                'First draft/attempt',
+                'Review & refine',
+                'Finalize & submit'
+            ];
+
+            state.pieces = pieces.map(p => ({ text: p, level: 0 }));
+            renderPieces();
+        }
+
+        function renderPieces() {
+            const container = document.getElementById('piecesContainer');
+            container.innerHTML = '';
+
+            state.pieces.forEach((piece, index) => {
+                const pieceEl = document.createElement('div');
+                pieceEl.className = 'piece' + (piece.level > 0 ? ' small' : '');
+                pieceEl.draggable = true;
+                pieceEl.dataset.index = index;
+                pieceEl.innerHTML = `
+                    ${piece.text}
+                    ${piece.level < 2 ? '<button class="break-smaller-btn" onclick="breakSmaller(' + index + ', event)">→</button>' : ''}
+                `;
+
+                pieceEl.addEventListener('dragstart', handleDragStart);
+                pieceEl.addEventListener('dragend', handleDragEnd);
+
+                container.appendChild(pieceEl);
+            });
+        }
+
+        function breakSmaller(index, event) {
+            event.stopPropagation();
+            playBreakTone();
+
+            const piece = state.pieces[index];
+            piece.level++;
+
+            // Make text more specific
+            if (piece.level === 1) {
+                piece.text = piece.text + ' (just 15 min)';
+            } else if (piece.level === 2) {
+                piece.text = piece.text.replace(' (just 15 min)', ' (just 5 min)');
+            }
+
+            renderPieces();
+        }
+
+        let draggedElement = null;
+
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+        }
+
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+
+        const dropZone = document.getElementById('dropZone');
+
+        dropZone?.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
+        });
+
+        dropZone?.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-over');
+        });
+
+        dropZone?.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
+
+            if (draggedElement) {
+                const index = parseInt(draggedElement.dataset.index);
+                const piece = state.pieces[index];
+
+                if (!state.doablePieces.includes(piece.text)) {
+                    state.doablePieces.push(piece.text);
+
+                    // Add to drop zone visually
+                    const pieceClone = draggedElement.cloneNode(true);
+                    pieceClone.draggable = false;
+                    pieceClone.querySelector('.break-smaller-btn')?.remove();
+                    dropZone.appendChild(pieceClone);
+
+                    // Remove label if first piece
+                    const label = dropZone.querySelector('.drop-zone-label');
+                    if (label) label.remove();
+
+                    playLiftingTone();
+
+                    // Enable button if we have pieces
+                    if (state.doablePieces.length > 0) {
+                        document.getElementById('phase5Btn').disabled = false;
+                    }
+                }
+            }
+        });
+
+        // Phase 6: Choose first step
+        function nextPhase6() {
+            nextPhase(6);
+
+            const container = document.getElementById('firstStepContainer');
+            container.innerHTML = '';
+
+            state.doablePieces.forEach((piece, index) => {
+                const option = document.createElement('div');
+                option.className = 'first-step-option';
+                option.textContent = piece;
+                option.onclick = () => selectFirstStep(piece, option);
+                container.appendChild(option);
+            });
+        }
+
+        // Override phase 5 button
+        document.getElementById('phase5Btn')?.addEventListener('click', (e) => {
+            e.preventDefault();
+            nextPhase6();
+        });
+
+        function selectFirstStep(piece, element) {
+            state.firstStep = piece;
+
+            document.querySelectorAll('.first-step-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+
+            element.classList.add('selected');
+
+            document.getElementById('phase6Btn').disabled = false;
+        }
+
+        function complete() {
+            playSuccessTone();
+            nextPhase(7);
+
+            document.getElementById('progressBar').style.width = '100%';
+
+            // Show the plan
+            const planContainer = document.getElementById('yourPlan');
+            planContainer.innerHTML = `
+                <h3>Your Action Plan</h3>
+                <p><strong>What you're facing:</strong> ${state.task}</p>
+                <p><strong>The emotion behind it:</strong> ${state.emotion}</p>
+                <p><strong>What you truly want:</strong> ${state.wish}</p>
+                <p><strong>When ${state.obstacle}:</strong><br>Then ${state.plan}</p>
+                <p><strong>Your first step:</strong> ${state.firstStep}</p>
+                <p style="margin-top: 20px; font-style: italic; opacity: 0.8;">You've confronted the resistance. Now take that first step.</p>
+            `;
+        }
+
+        function restart() {
+            location.reload();
+        }
+
+        // Resume audio on first interaction
+        document.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        }, { once: true });
+    </script>
+</body>
+</html>
