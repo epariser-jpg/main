@@ -218,7 +218,7 @@
             <strong>⚙️ First time setup:</strong><br>
             Tap the share button and "Add to Home Screen" for quick access!
             <br><br>
-            You'll need to configure your Slack webhook URL in the settings below.
+            When you send your first task, you'll be prompted to enter your Slack credentials (OAuth token, channel ID, and list ID).
         </div>
     </div>
 
@@ -323,21 +323,40 @@
         });
 
         async function sendToSlack(task, priority) {
-            // Get webhook URL from localStorage or config
-            const webhookUrl = localStorage.getItem('slackWebhookUrl');
+            // Get credentials from localStorage
+            let slackToken = localStorage.getItem('slackToken');
+            let listId = localStorage.getItem('slackListId');
+            let channelId = localStorage.getItem('slackChannelId');
 
-            if (!webhookUrl) {
-                // Prompt for webhook URL on first use
-                const url = prompt('Please enter your Slack webhook URL:\n\n(This will be saved for future use)');
-                if (!url) {
-                    throw new Error('Webhook URL required');
+            // Check if we need to configure
+            if (!slackToken || !channelId) {
+                const configure = confirm('Slack credentials not configured.\n\nClick OK to enter setup, or Cancel to abort.');
+                if (!configure) {
+                    throw new Error('Configuration required');
                 }
-                localStorage.setItem('slackWebhookUrl', url);
-                return sendToSlack(task, priority); // Retry with saved URL
+
+                // Prompt for credentials
+                slackToken = prompt('Step 1/3: Enter your Slack OAuth token:\n(Starts with xoxb- or xoxp-)');
+                if (!slackToken) {
+                    throw new Error('Token required');
+                }
+                localStorage.setItem('slackToken', slackToken);
+
+                channelId = prompt('Step 2/3: Enter your Slack channel ID:\n(Example: C1234567890)');
+                if (!channelId) {
+                    throw new Error('Channel ID required');
+                }
+                localStorage.setItem('slackChannelId', channelId);
+
+                listId = prompt('Step 3/3 (Optional): Enter your List ID:\n(Leave blank to just post messages)\n(Example: L1234567890)') || '';
+                if (listId) {
+                    localStorage.setItem('slackListId', listId);
+                }
+
+                showStatus('Configuration saved!', 'success');
             }
 
-            // Call our Netlify Function instead of calling Slack directly
-            // This avoids CORS issues
+            // Call our Netlify Function
             const response = await fetch('/.netlify/functions/send-task', {
                 method: 'POST',
                 headers: {
@@ -346,7 +365,9 @@
                 body: JSON.stringify({
                     task: task,
                     priority: priority,
-                    webhookUrl: webhookUrl
+                    slackToken: slackToken,
+                    listId: listId || undefined,
+                    channelId: channelId
                 })
             });
 
@@ -371,8 +392,8 @@
         window.addEventListener('load', () => {
             taskInput.focus();
 
-            // Hide setup notice if webhook is configured
-            if (localStorage.getItem('slackWebhookUrl')) {
+            // Hide setup notice if configured
+            if (localStorage.getItem('slackToken')) {
                 document.getElementById('setupNotice').style.display = 'none';
             }
         });
@@ -384,14 +405,16 @@
             deferredPrompt = e;
         });
 
-        // Settings button to reset webhook
+        // Settings button to reset configuration
         document.addEventListener('dblclick', (e) => {
             if (e.target === document.body || e.target.className === 'container') {
-                const reset = confirm('Reset Slack webhook URL?');
+                const reset = confirm('Reset Slack configuration?');
                 if (reset) {
-                    localStorage.removeItem('slackWebhookUrl');
+                    localStorage.removeItem('slackToken');
+                    localStorage.removeItem('slackListId');
+                    localStorage.removeItem('slackChannelId');
                     document.getElementById('setupNotice').style.display = 'block';
-                    showStatus('Webhook URL cleared', 'info');
+                    showStatus('Configuration cleared', 'info');
                 }
             }
         });
