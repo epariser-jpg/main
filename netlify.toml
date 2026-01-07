@@ -1,0 +1,17 @@
+[build]
+  functions = "netlify/functions"
+
+[functions]
+  # Enable Node.js 18 runtime
+  node_bundler = "esbuild"
+
+[[redirects]]
+  from = "/*"
+  to = "/quick-task.html"
+  status = 200
+  force = false
+
+# Optional: Set environment variable for webhook URL
+# You can set this in Netlify UI instead of storing it client-side
+# [context.production.environment]
+#   SLACK_WEBHOOK_URL = "your-webhook-url-here"

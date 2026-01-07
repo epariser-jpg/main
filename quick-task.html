@@ -336,36 +336,26 @@
                 return sendToSlack(task, priority); // Retry with saved URL
             }
 
-            const priorityLabels = {
-                '1': '1 - Today',
-                '2': '2 - Today',
-                '3': '3 - Week'
-            };
-
-            const message = {
-                text: `New task: ${task}`,
-                blocks: [
-                    {
-                        type: "section",
-                        text: {
-                            type: "mrkdwn",
-                            text: `*New Task Added*\n\n${task}\n\n_Priority: ${priorityLabels[priority]}_`
-                        }
-                    }
-                ]
-            };
-
-            const response = await fetch(webhookUrl, {
+            // Call our Netlify Function instead of calling Slack directly
+            // This avoids CORS issues
+            const response = await fetch('/.netlify/functions/send-task', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(message)
+                body: JSON.stringify({
+                    task: task,
+                    priority: priority,
+                    webhookUrl: webhookUrl
+                })
             });
 
             if (!response.ok) {
-                throw new Error('Failed to send to Slack');
+                const error = await response.json();
+                throw new Error(error.error || 'Failed to send to Slack');
             }
+
+            return await response.json();
         }
 
         function showStatus(message, type) {

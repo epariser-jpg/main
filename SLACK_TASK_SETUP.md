@@ -16,27 +16,35 @@ This is your simple, two-tap solution for adding tasks to Slack from your phone!
 8. Click **"Allow"**
 9. **Copy the Webhook URL** (looks like `https://hooks.slack.com/services/T00000000/B00000000/XXXX`)
 
-### Step 2: Host the App
+### Step 2: Host the App on Netlify (Recommended)
 
-You have several options:
+**Important:** This app needs a backend function to avoid CORS issues with Slack. Netlify is the easiest option!
 
-#### Option A: Simple HTTP Server (for testing)
+#### Method 1: Netlify Drop (Easiest - 2 minutes)
+1. Go to https://app.netlify.com/drop
+2. Drag and drop **ALL these files** from your computer:
+   - `quick-task.html`
+   - `manifest.json`
+   - `netlify.toml`
+   - The entire `netlify` folder (contains the backend function)
+3. Netlify will give you a URL like `https://random-name-123.netlify.app`
+4. Done! Your app is live.
+
+#### Method 2: Netlify GitHub Deploy (Best for updates)
+1. Push these files to a GitHub repository
+2. Go to https://app.netlify.com
+3. Click "Add new site" → "Import an existing project"
+4. Connect your GitHub repo
+5. Netlify auto-detects settings from `netlify.toml`
+6. Click "Deploy site"
+
+#### Method 3: Netlify CLI
 ```bash
-# In this directory, run:
-python3 -m http.server 8000
-# Then open http://YOUR_COMPUTER_IP:8000/quick-task.html on your phone
+npm install -g netlify-cli
+netlify deploy --prod
 ```
 
-#### Option B: GitHub Pages (recommended)
-1. Create a new GitHub repository
-2. Upload `quick-task.html` and `manifest.json`
-3. Go to Settings → Pages
-4. Enable GitHub Pages from the `main` branch
-5. Access at `https://YOUR_USERNAME.github.io/REPO_NAME/quick-task.html`
-
-#### Option C: Netlify/Vercel (easiest)
-1. Drag and drop these files to https://app.netlify.com/drop
-2. Get instant hosting with HTTPS
+**Note:** Other hosting options (GitHub Pages, Vercel, etc.) will also work but require similar backend setup.
 
 ### Step 3: Add to Phone Home Screen
 
@@ -118,15 +126,22 @@ async function sendToSlack(task, priority) {
 
 ## 🐛 Troubleshooting
 
+**"Failed to fetch" error when sending tasks:**
+- This happens when the backend function isn't deployed properly
+- **Solution:** Make sure you deployed the `netlify` folder with the function
+- Re-deploy on Netlify and ensure `netlify/functions/send-task.js` is included
+- Check Netlify's function logs: Site → Functions → send-task
+
 **Voice input doesn't work:**
 - Voice input only works on HTTPS (not HTTP)
 - Make sure you've granted microphone permissions
 - Voice recognition works best in Safari (iOS) and Chrome (Android)
 
 **Tasks not appearing in Slack:**
-- Check your webhook URL is correct
+- Check your webhook URL is correct (starts with `https://hooks.slack.com/services/`)
 - Make sure the Slack app is installed in your workspace
 - Check the channel you selected when creating the webhook
+- Look at Netlify function logs for error details
 
 **Can't add to home screen:**
 - Make sure you're using Safari (iOS) or Chrome (Android)
