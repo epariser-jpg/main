@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#4A154B">
+    <title>Quick Task to Slack</title>
+    <link rel="manifest" href="manifest.json">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #4A154B 0%, #2c0d2f 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.8;
+            font-size: 14px;
+        }
+
+        .input-container {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            color: #333;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4A154B;
+        }
+
+        textarea::placeholder {
+            color: #999;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        #voiceBtn {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        #voiceBtn:active, #voiceBtn.listening {
+            background: #e91e63;
+            color: white;
+            transform: scale(0.95);
+        }
+
+        #sendBtn {
+            background: #4A154B;
+            color: white;
+        }
+
+        #sendBtn:active {
+            background: #3a0f3b;
+            transform: scale(0.95);
+        }
+
+        #sendBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .status.show {
+            opacity: 1;
+        }
+
+        .status.success {
+            background: rgba(76, 175, 80, 0.2);
+            color: #4CAF50;
+        }
+
+        .status.error {
+            background: rgba(244, 67, 54, 0.2);
+            color: #f44336;
+        }
+
+        .status.info {
+            background: rgba(33, 150, 243, 0.2);
+            color: #2196F3;
+        }
+
+        .setup-notice {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .setup-notice a {
+            color: #61dafb;
+            text-decoration: none;
+        }
+
+        .priority-btns {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .priority-btn {
+            padding: 8px;
+            font-size: 12px;
+            background: #f8f8f8;
+            color: #666;
+            border-radius: 8px;
+        }
+
+        .priority-btn.selected {
+            background: #4A154B;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📝 Quick Task</h1>
+        <p class="subtitle">Add to your Slack task list</p>
+
+        <div class="input-container">
+            <div class="priority-btns">
+                <button class="priority-btn" data-priority="1">1 - Today</button>
+                <button class="priority-btn selected" data-priority="2">2 - Today</button>
+                <button class="priority-btn" data-priority="3">3 - Week</button>
+            </div>
+
+            <textarea id="taskInput" placeholder="Type or speak your task..."></textarea>
+
+            <div class="button-group">
+                <button id="voiceBtn">
+                    <span>🎤</span>
+                    <span>Voice</span>
+                </button>
+                <button id="sendBtn">
+                    <span>📤</span>
+                    <span>Send</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <div class="setup-notice" id="setupNotice">
+            <strong>⚙️ First time setup:</strong><br>
+            Tap the share button and "Add to Home Screen" for quick access!
+            <br><br>
+            You'll need to configure your Slack webhook URL in the settings below.
+        </div>
+    </div>
+
+    <script>
+        const taskInput = document.getElementById('taskInput');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const sendBtn = document.getElementById('sendBtn');
+        const statusDiv = document.getElementById('status');
+        const priorityBtns = document.querySelectorAll('.priority-btn');
+
+        let selectedPriority = '2';
+        let recognition = null;
+
+        // Priority selection
+        priorityBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                priorityBtns.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedPriority = btn.dataset.priority;
+            });
+        });
+
+        // Initialize speech recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                voiceBtn.classList.add('listening');
+                showStatus('Listening...', 'info');
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                taskInput.value = transcript;
+                showStatus('Got it!', 'success');
+            };
+
+            recognition.onerror = (event) => {
+                voiceBtn.classList.remove('listening');
+                if (event.error !== 'no-speech') {
+                    showStatus(`Voice error: ${event.error}`, 'error');
+                }
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('listening');
+            };
+        } else {
+            voiceBtn.disabled = true;
+            voiceBtn.innerHTML = '<span>🎤</span><span>Not supported</span>';
+        }
+
+        // Voice button
+        voiceBtn.addEventListener('click', () => {
+            if (recognition) {
+                if (voiceBtn.classList.contains('listening')) {
+                    recognition.stop();
+                } else {
+                    taskInput.value = '';
+                    recognition.start();
+                }
+            }
+        });
+
+        // Send button
+        sendBtn.addEventListener('click', async () => {
+            const task = taskInput.value.trim();
+            if (!task) {
+                showStatus('Please enter a task', 'error');
+                return;
+            }
+
+            sendBtn.disabled = true;
+            showStatus('Sending...', 'info');
+
+            try {
+                await sendToSlack(task, selectedPriority);
+                showStatus('✓ Task added!', 'success');
+                taskInput.value = '';
+
+                // Auto-hide status after 2 seconds
+                setTimeout(() => {
+                    hideStatus();
+                }, 2000);
+            } catch (error) {
+                showStatus('Error: ' + error.message, 'error');
+            } finally {
+                sendBtn.disabled = false;
+            }
+        });
+
+        // Enter to send (Ctrl/Cmd+Enter)
+        taskInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                e.preventDefault();
+                sendBtn.click();
+            }
+        });
+
+        async function sendToSlack(task, priority) {
+            // Get webhook URL from localStorage or config
+            const webhookUrl = localStorage.getItem('slackWebhookUrl');
+
+            if (!webhookUrl) {
+                // Prompt for webhook URL on first use
+                const url = prompt('Please enter your Slack webhook URL:\n\n(This will be saved for future use)');
+                if (!url) {
+                    throw new Error('Webhook URL required');
+                }
+                localStorage.setItem('slackWebhookUrl', url);
+                return sendToSlack(task, priority); // Retry with saved URL
+            }
+
+            const priorityLabels = {
+                '1': '1 - Today',
+                '2': '2 - Today',
+                '3': '3 - Week'
+            };
+
+            const message = {
+                text: `New task: ${task}`,
+                blocks: [
+                    {
+                        type: "section",
+                        text: {
+                            type: "mrkdwn",
+                            text: `*New Task Added*\n\n${task}\n\n_Priority: ${priorityLabels[priority]}_`
+                        }
+                    }
+                ]
+            };
+
+            const response = await fetch(webhookUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(message)
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to send to Slack');
+            }
+        }
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type} show`;
+        }
+
+        function hideStatus() {
+            statusDiv.classList.remove('show');
+        }
+
+        // Auto-focus on load
+        window.addEventListener('load', () => {
+            taskInput.focus();
+
+            // Hide setup notice if webhook is configured
+            if (localStorage.getItem('slackWebhookUrl')) {
+                document.getElementById('setupNotice').style.display = 'none';
+            }
+        });
+
+        // PWA installation
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+        });
+
+        // Settings button to reset webhook
+        document.addEventListener('dblclick', (e) => {
+            if (e.target === document.body || e.target.className === 'container') {
+                const reset = confirm('Reset Slack webhook URL?');
+                if (reset) {
+                    localStorage.removeItem('slackWebhookUrl');
+                    document.getElementById('setupNotice').style.display = 'block';
+                    showStatus('Webhook URL cleared', 'info');
+                }
+            }
+        });
+    </script>
+</body>
+</html>
