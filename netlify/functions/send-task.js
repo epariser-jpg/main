@@ -62,9 +62,25 @@ exports.handler = async (event, context) => {
 
       if (!messageData.ok) {
         console.error('Failed to post message:', messageData);
+
+        // Provide helpful error messages based on common issues
+        let helpfulMessage = `Slack API error: ${messageData.error}`;
+
+        if (messageData.error === 'not_in_channel' || messageData.error === 'channel_not_found') {
+          helpfulMessage += '\n\nThe bot needs to be invited to the channel. In Slack, type: /invite @Quick Task';
+        } else if (messageData.error === 'missing_scope') {
+          helpfulMessage += '\n\nMissing required permissions. Add chat:write and chat:write.public scopes to your Slack app, then reinstall it.';
+        } else if (messageData.error === 'invalid_auth' || messageData.error === 'token_revoked') {
+          helpfulMessage += '\n\nInvalid or revoked token. Generate a new OAuth token from your Slack app settings.';
+        }
+
         return {
           statusCode: 400,
-          body: JSON.stringify({ error: 'Failed to post message', details: messageData.error })
+          body: JSON.stringify({
+            error: helpfulMessage,
+            slack_error: messageData.error,
+            details: messageData
+          })
         };
       }
 
@@ -139,9 +155,25 @@ exports.handler = async (event, context) => {
 
       if (!data.ok) {
         console.error('Slack API error:', data);
+
+        // Provide helpful error messages
+        let helpfulMessage = `Slack API error: ${data.error}`;
+
+        if (data.error === 'not_in_channel' || data.error === 'channel_not_found') {
+          helpfulMessage += '\n\nThe bot needs to be invited to the channel. In Slack, type: /invite @Quick Task';
+        } else if (data.error === 'missing_scope') {
+          helpfulMessage += '\n\nMissing required permissions. Add chat:write and chat:write.public scopes to your Slack app, then reinstall it.';
+        } else if (data.error === 'invalid_auth' || data.error === 'token_revoked') {
+          helpfulMessage += '\n\nInvalid or revoked token. Generate a new OAuth token from your Slack app settings.';
+        }
+
         return {
           statusCode: 400,
-          body: JSON.stringify({ error: 'Failed to send to Slack', details: data.error })
+          body: JSON.stringify({
+            error: helpfulMessage,
+            slack_error: data.error,
+            details: data
+          })
         };
       }
 
