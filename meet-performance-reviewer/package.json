@@ -1,0 +1,25 @@
+{
+  "name": "meet-performance-reviewer",
+  "version": "1.0.0",
+  "description": "Weekly Google Meet performance review system using Claude AI",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "review": "node review-now.js",
+    "setup": "node setup.js"
+  },
+  "keywords": [
+    "google-meet",
+    "performance-review",
+    "claude-ai"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "googleapis": "^144.0.0",
+    "node-cron": "^3.0.3",
+    "nodemailer": "^6.9.15",
+    "dotenv": "^16.4.5"
+  }
+}
